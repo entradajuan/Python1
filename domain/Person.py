@@ -1,4 +1,4 @@
-class Person():
+class Person:
 
     def __init__(self, name, age):
         self.name = name
@@ -10,3 +10,5 @@ class Person():
     def sayHello(self):
         return "Hello my name is ", self.name
 
+    def __call__(self, x, y):
+        return x + y
