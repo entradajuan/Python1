@@ -6,3 +6,7 @@ class Person():
 
     def getoneyear(self):
         self.age +=1
+
+    def sayHello(self):
+        return "Hello my name is ", self.name
+
