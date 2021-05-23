@@ -48,7 +48,7 @@ inputs_ids = [tokenizer.convert_tokens_to_ids(tt) for tt in tokenized_texts]
 print(tokenized_texts[0])
 print(inputs_ids[0])
 MAX_LEN = 128
-inputs_ids = pad_sequences(inputs_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
+input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
 attention_masks = []
 for seq in input_ids:
   seq_mask = [float(i>0) for i in seq]
@@ -60,3 +60,23 @@ train_inputs, validation_inputs, train_labels, validation_labels = train_test_sp
 train_masks, validation_masks, _, _ = train_test_split(attention_masks, input_ids,
                                              random_state=2018, test_size=0.1)
 
+train_inputs = torch.tensor(train_inputs)
+validation_inputs = torch.tensor(validation_inputs)
+train_labels = torch.tensor(train_labels)
+validation_labels = torch.tensor(validation_labels)
+train_masks = torch.tensor(train_masks)
+validation_masks = torch.tensor(validation_masks)
+
+batch_size = 128
+
+
+train_data = TensorDataset(train_inputs, train_masks, train_labels)
+train_sampler = RandomSampler(train_data)
+train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=batch_size)
+
+validation_data = TensorDataset(validation_inputs, validation_masks, validation_labels)
+validation_sampler = SequentialSampler(validation_data)
+validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, batch_size=batch_size)
+
+model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
+model.cuda()
