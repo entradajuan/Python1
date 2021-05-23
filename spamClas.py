@@ -29,3 +29,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n_gpu = torch.cuda.device_count()
 torch.cuda.get_device_name(0)
 
+# Read dataset
+
+#df = pd.read_csv("dataset/spam2.csv", names=['Category', 'Message'])
+df = pd.read_csv("dataset/spam2.csv")
+
+messages = df.Message.values
+labels = df.Category.values
+
+print(type(messages))
+print(messages[0])
+print(labels[0])
