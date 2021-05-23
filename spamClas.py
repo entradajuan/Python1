@@ -40,3 +40,23 @@ labels = df.Category.values
 print(type(messages))
 print(messages[0])
 print(labels[0])
+
+sentences = ["[CLS] " + m + " [SEP]" for m in messages]
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case= True)
+tokenized_texts = [tokenizer.tokenize(s) for s in sentences]
+inputs_ids = [tokenizer.convert_tokens_to_ids(tt) for tt in tokenized_texts]
+print(tokenized_texts[0])
+print(inputs_ids[0])
+MAX_LEN = 128
+inputs_ids = pad_sequences(inputs_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
+attention_masks = []
+for seq in input_ids:
+  seq_mask = [float(i>0) for i in seq]
+  attention_masks.append(seq_mask)
+
+
+train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(input_ids, labels, 
+                                                            random_state=2018, test_size=0.1)
+train_masks, validation_masks, _, _ = train_test_split(attention_masks, input_ids,
+                                             random_state=2018, test_size=0.1)
+
