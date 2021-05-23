@@ -80,3 +80,23 @@ validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, 
 
 model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
 model.cuda()
+
+param_optimizer = list(model.named_parameters())
+no_decay = ['bias', 'LayerNorm.weight']
+optimizer_grouped_parameters = [
+    {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+     'weight_decay_rate': 0.1},
+    {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
+     'weight_decay_rate': 0.0}
+]
+epochs = 32
+optimizer = AdamW(optimizer_grouped_parameters,
+                  lr = 5e-5, 
+                  eps = 1e-8 
+                  )
+
+total_steps = len(train_dataloader) * epochs
+
+scheduler = get_linear_schedule_with_warmup(optimizer, 
+                                            num_warmup_steps = 0, 
+                                            num_training_steps = total_steps)
