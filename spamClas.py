@@ -48,7 +48,7 @@ inputs_ids = [tokenizer.convert_tokens_to_ids(tt) for tt in tokenized_texts]
 print(tokenized_texts[0])
 print(inputs_ids[0])
 MAX_LEN = 128
-input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
+input_ids = pad_sequences(inputs_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
 attention_masks = []
 for seq in input_ids:
   seq_mask = [float(i>0) for i in seq]
@@ -100,3 +100,4 @@ total_steps = len(train_dataloader) * epochs
 scheduler = get_linear_schedule_with_warmup(optimizer, 
                                             num_warmup_steps = 0, 
                                             num_training_steps = total_steps)
+
