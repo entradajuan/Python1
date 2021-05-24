@@ -16,7 +16,8 @@ import os
 
 ### MODEL LOADING!!  ###########################################################################################################
 
-output_dir = './drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save/'
+#output_dir = './drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save/'
+output_dir = '/content/drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save'
 
 if not os.path.exists(output_dir):
   print("ERROR in output_dir")
