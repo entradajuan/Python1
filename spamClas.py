@@ -27,8 +27,8 @@ from google.colab import auth
 from oauth2client.client import GoogleCredentials
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n_gpu = torch.cuda.device_count()
-torch.cuda.get_device_name(0)
 
+print(torch.cuda.get_device_name(0))
 # Read dataset
 
 #df = pd.read_csv("dataset/spam2.csv", names=['Category', 'Message'])
@@ -67,7 +67,7 @@ validation_labels = torch.tensor(validation_labels)
 train_masks = torch.tensor(train_masks)
 validation_masks = torch.tensor(validation_masks)
 
-batch_size = 128
+batch_size = 64
 
 
 train_data = TensorDataset(train_inputs, train_masks, train_labels)
@@ -89,7 +89,8 @@ optimizer_grouped_parameters = [
     {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
      'weight_decay_rate': 0.0}
 ]
-epochs = 32
+epochs = 4
+#epochs = 32
 optimizer = AdamW(optimizer_grouped_parameters,
                   lr = 5e-5, 
                   eps = 1e-8 
@@ -100,4 +101,79 @@ total_steps = len(train_dataloader) * epochs
 scheduler = get_linear_schedule_with_warmup(optimizer, 
                                             num_warmup_steps = 0, 
                                             num_training_steps = total_steps)
+
+
+def flat_accuracy(preds, labels):
+    pred_flat = np.argmax(preds, axis=1).flatten()
+    labels_flat = labels.flatten()
+    return np.sum(pred_flat == labels_flat) / len(labels_flat)
+
+t = [] 
+
+train_loss_set = []
+
+for _ in trange(epochs, desc="Epoch"):
+  model.train()
+  
+  tr_loss = 0
+  nb_tr_examples, nb_tr_steps = 0, 0
+  
+  for step, batch in enumerate(train_dataloader):
+    batch = tuple(t.to(device) for t in batch)
+    b_input_ids, b_input_mask, b_labels = batch
+    optimizer.zero_grad()
+    outputs = model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask, labels=b_labels)
+    loss = outputs['loss']
+    train_loss_set.append(loss.item())    
+    loss.backward()
+    optimizer.step()
+
+    scheduler.step()
+    
+    tr_loss += loss.item()
+    nb_tr_examples += b_input_ids.size(0)
+    nb_tr_steps += 1
+
+  print("Train loss: {}".format(tr_loss/nb_tr_steps))
+    
+  model.eval()
+
+  eval_loss, eval_accuracy = 0, 0
+  nb_eval_steps, nb_eval_examples = 0, 0
+
+  for batch in validation_dataloader:
+    batch = tuple(t.to(device) for t in batch)
+    b_input_ids, b_input_mask, b_labels = batch
+    with torch.no_grad():
+      logits = model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask)
+    
+    logits = logits['logits'].detach().cpu().numpy()
+    label_ids = b_labels.to('cpu').numpy()
+
+    tmp_eval_accuracy = flat_accuracy(logits, label_ids)
+    
+    eval_accuracy += tmp_eval_accuracy
+    nb_eval_steps += 1
+
+  print("Validation Accuracy: {}".format(eval_accuracy/nb_eval_steps))
+
+plt.figure(figsize=(15,8))
+plt.title("Training loss")
+plt.xlabel("Batch")
+plt.ylabel("Loss")
+plt.plot(train_loss_set)
+plt.show()
+
+import os
+
+output_dir = './drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save/'
+
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+print("Saving model to %s" % output_dir)
+
+model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
+model_to_save.save_pretrained(output_dir)
+tokenizer.save_pretrained(output_dir)
 
