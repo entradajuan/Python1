@@ -29,7 +29,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n_gpu = torch.cuda.device_count()
 
 print(torch.cuda.get_device_name(0))
-# Read dataset
+
+##  PREPROCESS DATASET
 
 #df = pd.read_csv("dataset/spam2.csv", names=['Category', 'Message'])
 df = pd.read_csv("dataset/spam2.csv")
@@ -69,7 +70,6 @@ validation_masks = torch.tensor(validation_masks)
 
 batch_size = 64
 
-
 train_data = TensorDataset(train_inputs, train_masks, train_labels)
 train_sampler = RandomSampler(train_data)
 train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=batch_size)
@@ -77,6 +77,8 @@ train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=batc
 validation_data = TensorDataset(validation_inputs, validation_masks, validation_labels)
 validation_sampler = SequentialSampler(validation_data)
 validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, batch_size=batch_size)
+
+##  SELECT MODEL
 
 model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
 model.cuda()
@@ -107,6 +109,8 @@ def flat_accuracy(preds, labels):
     pred_flat = np.argmax(preds, axis=1).flatten()
     labels_flat = labels.flatten()
     return np.sum(pred_flat == labels_flat) / len(labels_flat)
+
+##  TRAIN MODEL
 
 t = [] 
 
@@ -157,6 +161,8 @@ for _ in trange(epochs, desc="Epoch"):
 
   print("Validation Accuracy: {}".format(eval_accuracy/nb_eval_steps))
 
+##  PLOT LOSS
+
 plt.figure(figsize=(15,8))
 plt.title("Training loss")
 plt.xlabel("Batch")
@@ -164,9 +170,13 @@ plt.ylabel("Loss")
 plt.plot(train_loss_set)
 plt.show()
 
+##  SAVE TRAINED MODEL PARAMETERS
+
 import os
 
-output_dir = './drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save/'
+#output_dir = './drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save/'
+output_dir = '/content/drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save'
+
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -177,3 +187,4 @@ model_to_save = model.module if hasattr(model, 'module') else model  # Take care
 model_to_save.save_pretrained(output_dir)
 tokenizer.save_pretrained(output_dir)
 
+##  EVALUATE 
