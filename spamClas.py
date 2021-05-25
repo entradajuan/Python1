@@ -188,3 +188,72 @@ model_to_save.save_pretrained(output_dir)
 tokenizer.save_pretrained(output_dir)
 
 ##  EVALUATE 
+
+df = pd.read_csv("dataset/emails1.csv")
+df['text'] = df['text'].apply(erase_first_word)
+sentences = df.text.values 
+labels = df.spam.values
+
+sentences = ["[CLS] " + sentence + " [SEP]" for sentence in sentences]
+print(sentences[0])
+tokenized_texts = [tokenizer.tokenize(sent) for sent in sentences]
+print(tokenized_texts[0])
+
+MAX_LEN = 128
+
+input_ids = [tokenizer.convert_tokens_to_ids(x) for x in tokenized_texts]
+input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
+print(input_ids[0])
+
+attention_masks = []
+
+for seq in input_ids:
+  seq_mask = [float(i>0) for i in seq]
+  attention_masks.append(seq_mask) 
+
+prediction_inputs = torch.tensor(input_ids)
+prediction_masks = torch.tensor(attention_masks)
+prediction_labels = torch.tensor(labels)
+  
+batch_size = 32
+
+prediction_data = TensorDataset(prediction_inputs, prediction_masks, prediction_labels)
+prediction_sampler = SequentialSampler(prediction_data)
+prediction_dataloader = DataLoader(prediction_data, sampler=prediction_sampler, batch_size=batch_size)
+
+model.eval()
+
+predictions , true_labels = [], []
+
+for batch in prediction_dataloader:
+  batch = tuple(t.to(device) for t in batch)
+  b_input_ids, b_input_mask, b_labels = batch
+  with torch.no_grad():
+    logits = model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask)
+
+  logits = logits['logits'].detach().cpu().numpy()
+  label_ids = b_labels.to('cpu').numpy()
+  
+  predictions.append(logits)
+  true_labels.append(label_ids)
+
+print(np.argmax(predictions[0], axis=1).flatten()) 
+print(true_labels[0])
+
+from sklearn.metrics import matthews_corrcoef
+matthews_set = []
+
+for i in range(len(true_labels)):
+  matthews = matthews_corrcoef(true_labels[i],
+                 np.argmax(predictions[i], axis=1).flatten())
+  matthews_set.append(matthews)
+
+print(matthews_set)
+
+flat_predictions = [item for sublist in predictions for item in sublist]
+flat_predictions = np.argmax(flat_predictions, axis=1).flatten()
+flat_true_labels = [item for sublist in true_labels for item in sublist]
+
+eval = matthews_corrcoef(flat_true_labels, flat_predictions)
+
+print("bert-base-uncased matthews_corrcoef equals ", eval )
