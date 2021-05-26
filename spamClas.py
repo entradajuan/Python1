@@ -90,7 +90,7 @@ validation_labels = torch.tensor(validation_labels)
 train_masks = torch.tensor(train_masks)
 validation_masks = torch.tensor(validation_masks)
 
-batch_size = 64
+batch_size = 32
 
 train_data = TensorDataset(train_inputs, train_masks, train_labels)
 train_sampler = RandomSampler(train_data)
@@ -254,6 +254,9 @@ for model in models.items():
   
   sentences = df.v2.values 
   labels = df.v1.values
+  labels = labels == 'spam'
+  labels = 1 * labels
+
 
   sentences = ["[CLS] " + sentence + " [SEP]" for sentence in sentences]
   print(sentences[0])
