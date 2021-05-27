@@ -50,10 +50,10 @@ df['text'] = df['text'].apply(erase_first_word)
 sentences = df.text.values 
 labels = df.spam.values
 
-print(sentences[0])
-print(sentences.size)
-print(labels[0])
-print(labels.size)
+#print(sentences[0])
+#print(sentences.size)
+#print(labels[0])
+#print(labels.size)
 
 erase_first_word = lambda s : s[9:]
 df2 = pd.read_csv("dataset/spam2.csv")
@@ -68,8 +68,8 @@ sentences = ["[CLS] " + m + " [SEP]" for m in messages]
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case= True)
 tokenized_texts = [tokenizer.tokenize(s) for s in sentences]
 inputs_ids = [tokenizer.convert_tokens_to_ids(tt) for tt in tokenized_texts]
-print(tokenized_texts[0])
-print(inputs_ids[0])
+#print(tokenized_texts[0])
+#print(inputs_ids[0])
 MAX_LEN = 128
 input_ids = pad_sequences(inputs_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
 attention_masks = []
@@ -111,19 +111,19 @@ models = {1 : {"name": "bert-base-uncased",
                "param_no_decay": ['bias', 'LayerNorm.weight'],
                "learning_rate": 2e-5,
                "eps": 1e-8,
-               "epochs": 4,
+               "epochs": 2,
                "num_warmup_steps" : 0},
           2 : {"name": "bert-base-uncased",
                "param_no_decay":['bias'],
                "learning_rate": 1e-5,
                "eps": 1e-9,
-               "epochs": 4,
+               "epochs": 1,
                "num_warmup_steps" : 10},
           3 : {"name": "bert-base-uncased",
                "param_no_decay":[],
                "learning_rate": 3e-5,
                "eps": 5e-8,
-               "epochs": 4,
+               "epochs": 1,
                "num_warmup_steps" : 30}
           }
 
@@ -230,7 +230,7 @@ for model in models.items():
   import os
 
   output_dir = '/content/drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save'
-  output_dir = output_dir + str(id)
+  output_dir = output_dir + str(num)
 
   if not os.path.exists(output_dir):
       os.makedirs(output_dir)
@@ -250,7 +250,7 @@ for model in models.items():
   #labels = df.spam.values
 
   df = pd.read_csv("dataset/spam.csv",  sep=',',  encoding='latin-1')
-  print(df)
+#  print(df)
   
   sentences = df.v2.values 
   labels = df.v1.values
@@ -259,15 +259,15 @@ for model in models.items():
 
 
   sentences = ["[CLS] " + sentence + " [SEP]" for sentence in sentences]
-  print(sentences[0])
+#  print(sentences[0])
   tokenized_texts = [tokenizer.tokenize(sent) for sent in sentences]
-  print(tokenized_texts[0])
+#  print(tokenized_texts[0])
 
   MAX_LEN = 128
 
   input_ids = [tokenizer.convert_tokens_to_ids(x) for x in tokenized_texts]
   input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
-  print(input_ids[0])
+# print(input_ids[0])
 
   attention_masks = []
 
@@ -301,8 +301,8 @@ for model in models.items():
     predictions.append(logits)
     true_labels.append(label_ids)
 
-  print(np.argmax(predictions[0], axis=1).flatten()) 
-  print(true_labels[0])
+#  print(np.argmax(predictions[0], axis=1).flatten()) 
+#  print(true_labels[0])
 
   from sklearn.metrics import matthews_corrcoef
   matthews_set = []
