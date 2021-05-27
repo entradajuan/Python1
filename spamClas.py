@@ -17,6 +17,7 @@ import io
 import numpy as np
 import matplotlib.pyplot as plt
 from google.colab import drive
+drive.mount('/content/gdrive')
 from pickle import load
 np.random.seed(0)
 
@@ -111,7 +112,7 @@ models = {1 : {"name": "bert-base-uncased",
                "param_no_decay": ['bias', 'LayerNorm.weight'],
                "learning_rate": 2e-5,
                "eps": 1e-8,
-               "epochs": 2,
+               "epochs": 1,
                "num_warmup_steps" : 0},
           2 : {"name": "bert-base-uncased",
                "param_no_decay":['bias'],
@@ -229,7 +230,7 @@ for model in models.items():
 
   import os
 
-  output_dir = '/content/drive/MyDrive/Machine Learning/datos/Spam/modelos/model_save'
+  output_dir = '/content/gdrive/MyDrive/Machine Learning/datos/Spam/modelos/model_saveTMP'
   output_dir = output_dir + str(num)
 
   if not os.path.exists(output_dir):
